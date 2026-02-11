@@ -1,8 +1,10 @@
 // Phase 2: TUI browser with ratatui.
 
+mod app;
 mod browser;
 mod ui;
 
+use app::App;
 use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
@@ -17,11 +19,13 @@ fn main() -> io::Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    let mut app = App::new();
+
     loop {
-        terminal.draw(ui::draw)?;
-        match ui::handle_input()? {
-            ui::InputResult::Quit => break,
-            ui::InputResult::Continue => {}
+        terminal.draw(|frame| ui::draw(frame, &app))?;
+        ui::handle_input(&mut app)?;
+        if app.should_quit {
+            break;
         }
     }
 

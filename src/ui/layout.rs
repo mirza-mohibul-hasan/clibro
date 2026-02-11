@@ -7,8 +7,10 @@ use ratatui::{
     Frame,
 };
 
+use crate::app::App;
+
 /// Render the main TUI layout with URL bar, content area, and status bar.
-pub fn draw(frame: &mut Frame) {
+pub fn draw(frame: &mut Frame, app: &App) {
     let area = frame.area();
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -23,7 +25,7 @@ pub fn draw(frame: &mut Frame) {
         .title(" URL ")
         .borders(Borders::ALL)
         .border_style(Style::default());
-    let url_content = Paragraph::new("").block(url_bar);
+    let url_content = Paragraph::new(app.current_url.as_str()).block(url_bar);
     frame.render_widget(url_content, chunks[0]);
 
     let content_block = Block::default()
