@@ -1,6 +1,6 @@
 // HTML parser: extract headings, paragraphs, and links into a Page.
 
-use anyhow::{Context, Result};
+use anyhow::{Result, anyhow};
 use scraper::{Html, Selector};
 use url::Url;
 
@@ -23,12 +23,12 @@ fn clean_whitespace(s: &str) -> String {
 /// Relative URLs are resolved against base_url.
 pub fn parse(html: &str, base_url: &str) -> Result<Page> {
     let document = Html::parse_document(html);
-    let base = Url::parse(base_url).context("invalid base URL")?;
+    let base = Url::parse(base_url).map_err(|e| anyhow!("invalid base URL: {}", e))?;
 
-    let text_selector =
-        Selector::parse("h1, h2, h3, p").context("invalid text selector")?;
-    let link_selector =
-        Selector::parse("a[href]").context("invalid link selector")?;
+    let text_selector = Selector::parse("h1, h2, h3, p")
+        .map_err(|e| anyhow!("invalid text selector: {}", e))?;
+    let link_selector = Selector::parse("a[href]")
+        .map_err(|e| anyhow!("invalid link selector: {}", e))?;
 
     let mut text = Vec::new();
     for element in document.select(&text_selector) {

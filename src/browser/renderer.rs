@@ -1,6 +1,6 @@
 // Terminal renderer: print page text and numbered links.
 
-use crate::parser::Page;
+use super::parser::Page;
 
 /// Render a parsed page to the terminal: headings emphasized, paragraphs, then numbered links.
 pub fn render(page: &Page) {
