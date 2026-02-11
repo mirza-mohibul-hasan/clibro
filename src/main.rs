@@ -50,6 +50,11 @@ fn main() {
         // Reset so next iteration we ask for link or quit
         current_url.clear();
 
+        if page.links.is_empty() {
+            println!("No links on this page.");
+            continue;
+        }
+
         // Link navigation loop
         loop {
             print!("Enter link number (or q to quit): ");
