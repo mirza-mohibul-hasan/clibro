@@ -3,7 +3,7 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::Style,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, Borders, Paragraph, Wrap},
     Frame,
 };
 
@@ -32,7 +32,14 @@ pub fn draw(frame: &mut Frame, app: &App) {
         .title(" Content ")
         .borders(Borders::ALL)
         .border_style(Style::default());
-    let content = Paragraph::new("CONTENT AREA").block(content_block);
+    let content_text = match &app.page {
+        Some(page) => page.text.join("\n"),
+        None => String::new(),
+    };
+    let content = Paragraph::new(content_text)
+        .block(content_block)
+        .wrap(Wrap { trim: true })
+        .scroll((app.scroll, 0));
     frame.render_widget(content, chunks[1]);
 
     let status_block = Block::default()
