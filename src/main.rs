@@ -12,6 +12,26 @@ use crossterm::{
 use ratatui::prelude::*;
 use std::io;
 
+/// Navigate to url: push current to history back stack, clear forward stack, fetch and parse.
+fn navigate_to(app: &mut App, url: &str) {
+    if !app.current_url.is_empty() {
+        app.history.back_stack.push(app.current_url.clone());
+        app.history.forward_stack.clear();
+    }
+    let html = match browser::fetch(url) {
+        Ok(body) => body,
+        Err(_) => return,
+    };
+    let page = match browser::parse(&html, url) {
+        Ok(p) => p,
+        Err(_) => return,
+    };
+    app.current_url = url.to_string();
+    app.page = Some(page);
+    app.scroll = 0;
+    app.selected_link = 0;
+}
+
 fn main() -> io::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
@@ -20,12 +40,14 @@ fn main() -> io::Result<()> {
     let mut terminal = Terminal::new(backend)?;
 
     let mut app = App::new();
+    navigate_to(&mut app, "https://example.com");
 
     loop {
         terminal.draw(|frame| ui::draw(frame, &app))?;
-        ui::handle_input(&mut app)?;
-        if app.should_quit {
-            break;
+        match ui::handle_input(&mut app)? {
+            ui::InputResult::Quit => break,
+            ui::InputResult::FollowLink(url) => navigate_to(&mut app, &url),
+            ui::InputResult::Continue => {}
         }
     }
 
