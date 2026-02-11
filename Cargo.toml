@@ -1,0 +1,11 @@
+[package]
+name = "clibro"
+version = "0.1.0"
+edition = "2021"
+description = "Terminal-based web browser"
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
+scraper = "0.19"
+anyhow = "1.0"
+url = "2.5"
