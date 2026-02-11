@@ -6,11 +6,19 @@ mod ui;
 
 use app::App;
 use crossterm::{
+    cursor::ShowCursor,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
 use ratatui::prelude::*;
 use std::io;
+
+/// Restore terminal to normal mode (show cursor, leave alternate screen, disable raw mode).
+fn restore_terminal() {
+    let _ = io::stdout().execute(ShowCursor);
+    let _ = io::stdout().execute(LeaveAlternateScreen);
+    let _ = disable_raw_mode();
+}
 
 /// Load a URL and set app state (fetch, parse, update page). Does not modify history.
 fn load_page(app: &mut App, url: &str) {
@@ -38,12 +46,25 @@ fn navigate_to(app: &mut App, url: &str) {
 }
 
 fn main() -> io::Result<()> {
+    let default_panic = std::panic::take_hook();
+    std::panic::set_hook(Box::new(move |info| {
+        restore_terminal();
+        default_panic(info);
+    }));
+
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     stdout.execute(EnterAlternateScreen)?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
+    let result = run_app(&mut terminal);
+
+    restore_terminal();
+    result
+}
+
+fn run_app(terminal: &mut Terminal<CrosstermBackend<std::io::Stdout>>) -> io::Result<()> {
     let mut app = App::new();
     navigate_to(&mut app, "https://example.com");
 
@@ -66,8 +87,5 @@ fn main() -> io::Result<()> {
         }
     }
 
-    terminal.show_cursor()?;
-    stdout.execute(LeaveAlternateScreen)?;
-    disable_raw_mode()?;
     Ok(())
 }
