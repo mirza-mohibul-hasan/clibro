@@ -12,12 +12,8 @@ use crossterm::{
 use ratatui::prelude::*;
 use std::io;
 
-/// Navigate to url: push current to history back stack, clear forward stack, fetch and parse.
-fn navigate_to(app: &mut App, url: &str) {
-    if !app.current_url.is_empty() {
-        app.history.back_stack.push(app.current_url.clone());
-        app.history.forward_stack.clear();
-    }
+/// Load a URL and set app state (fetch, parse, update page). Does not modify history.
+fn load_page(app: &mut App, url: &str) {
     let html = match browser::fetch(url) {
         Ok(body) => body,
         Err(_) => return,
@@ -30,6 +26,15 @@ fn navigate_to(app: &mut App, url: &str) {
     app.page = Some(page);
     app.scroll = 0;
     app.selected_link = 0;
+}
+
+/// Navigate forward to url: push current to history back stack, clear forward stack, then load.
+fn navigate_to(app: &mut App, url: &str) {
+    if !app.current_url.is_empty() {
+        app.history.back_stack.push(app.current_url.clone());
+        app.history.forward_stack.clear();
+    }
+    load_page(app, url);
 }
 
 fn main() -> io::Result<()> {
@@ -47,6 +52,16 @@ fn main() -> io::Result<()> {
         match ui::handle_input(&mut app)? {
             ui::InputResult::Quit => break,
             ui::InputResult::FollowLink(url) => navigate_to(&mut app, &url),
+            ui::InputResult::Back => {
+                if let Some(url) = app.history.back(app.current_url.clone()) {
+                    load_page(&mut app, &url);
+                }
+            }
+            ui::InputResult::Forward => {
+                if let Some(url) = app.history.forward(app.current_url.clone()) {
+                    load_page(&mut app, &url);
+                }
+            }
             ui::InputResult::Continue => {}
         }
     }

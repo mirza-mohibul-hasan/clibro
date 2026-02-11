@@ -5,12 +5,14 @@ use std::time::Duration;
 
 use crate::app::App;
 
-/// Result of handling input: quit, follow a link, or continue.
+/// Result of handling input: quit, follow a link, back, forward, or continue.
 #[derive(Debug)]
 pub enum InputResult {
     Quit,
     Continue,
     FollowLink(String),
+    Back,
+    Forward,
 }
 
 /// Poll for a key event and update app state. Returns FollowLink(url) when Enter on a valid link.
@@ -41,6 +43,8 @@ pub fn handle_input(app: &mut App) -> std::io::Result<InputResult> {
                         }
                     }
                 }
+                KeyCode::Char('b') => return Ok(InputResult::Back),
+                KeyCode::Char('f') => return Ok(InputResult::Forward),
                 _ => {}
             }
         }
