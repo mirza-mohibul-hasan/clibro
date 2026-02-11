@@ -6,7 +6,7 @@ mod ui;
 
 use app::App;
 use crossterm::{
-    cursor::ShowCursor,
+    cursor::Show,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
     ExecutableCommand,
 };
@@ -15,7 +15,7 @@ use std::io;
 
 /// Restore terminal to normal mode (show cursor, leave alternate screen, disable raw mode).
 fn restore_terminal() {
-    let _ = io::stdout().execute(ShowCursor);
+    let _ = io::stdout().execute(Show);
     let _ = io::stdout().execute(LeaveAlternateScreen);
     let _ = disable_raw_mode();
 }

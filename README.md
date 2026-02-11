@@ -1,46 +1,70 @@
 # CliBro
 
-A terminal-based web browser written in Rust.
+A terminal-based web browser written in Rust. It fetches HTML pages, parses headings and links, and lets you browse in a TUI with keyboard navigation.
 
-## Minimal CLI Browser
+## How It Works
 
-- **Fetch** a webpage from a URL (blocking HTTP)
-- **Parse** HTML and extract headings (h1–h3), paragraphs, and links
-- **Render** text in the terminal; links shown as a numbered list
-- **Navigate** by entering a link number to follow, or `q` to quit
+1. **Start** — The app opens in a full-screen TUI and loads a default page (e.g. `https://example.com`).
+2. **Fetch** — Blocking HTTP (reqwest) fetches the raw HTML for a URL.
+3. **Parse** — The scraper extracts `h1`, `h2`, `h3`, `p` as text and `a[href]` as links; relative URLs are resolved to the current page URL.
+4. **Render** — ratatui draws three areas: URL bar, scrollable content (text + numbered links), and a status bar with hints.
+5. **Input** — Key events (crossterm) update app state: scroll, selected link, or trigger navigation (follow link, back, forward, quit).
+6. **Navigate** — Following a link pushes the current URL onto the back stack and loads the new page; back/forward pop from the stacks and load without pushing.
 
-No TUI (no ratatui). Plain terminal I/O.
+No JavaScript, no images, no bookmarks or tabs—just text and links.
 
-### Run
+## Run
 
 ```bash
 cargo run
 ```
 
-Then enter a URL (e.g. `https://example.com`), then a link number to follow or `q` to quit.
-
-### Build & check
+## Build & check
 
 ```bash
 cargo build
 cargo clippy
 ```
 
-### Layout
+Rust toolchain is set in `rust-toolchain.toml` (stable).
+
+## Keyboard controls
+
+| Key     | Action              |
+|--------|---------------------|
+| `↑`/`↓` | Scroll content      |
+| `j`/`k` | Next / previous link |
+| `Enter` | Follow selected link |
+| `b`    | Back                |
+| `f`    | Forward             |
+| `q`    | Quit                |
+
+## Layout (source)
 
 ```
 src/
-├── main.rs
-└── browser/
-    ├── mod.rs
-    ├── fetcher.rs
-    ├── parser.rs
-    └── renderer.rs
+├── main.rs          # Entry, terminal setup, panic hook, event loop, navigation wiring
+├── app.rs           # Centralized app state (URL, page, scroll, selection, history)
+├── browser/
+│   ├── mod.rs       # Re-exports
+│   ├── fetcher.rs   # Blocking HTTP fetch
+│   ├── parser.rs    # HTML → Page (text + links)
+│   └── history.rs   # Back/forward stacks
+└── ui/
+    ├── mod.rs       # Re-exports draw, handle_input, InputResult
+    ├── layout.rs    # ratatui layout and widgets (URL bar, content, status)
+    └── events.rs    # Key polling → InputResult + scroll/link selection
 ```
 
-### Dependencies
+## Dependencies
 
-- `reqwest` (blocking)
-- `scraper`
-- `anyhow`
-- `url`
+- **reqwest** — blocking HTTP, rustls (no native TLS)
+- **scraper** — HTML parsing (selectors)
+- **anyhow** — error handling
+- **url** — URL parsing and resolution
+- **ratatui** — TUI widgets and layout
+- **crossterm** — terminal raw mode, alternate screen, key events
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for architecture details, coding standards, and how to contribute.
