@@ -9,3 +9,5 @@ reqwest = { version = "0.12", default-features = false, features = ["blocking", 
 scraper = "0.19"
 anyhow = "1.0"
 url = "2.5"
+ratatui = "0.28"
+crossterm = "0.28"
